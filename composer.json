@@ -2,6 +2,6 @@
   "require": {
     "php": "^7.3",
     "tracy/tracy": "^2.6.0",
-    "maennchen/zipstream-php": "^2.1.0"
+    "maennchen/zipstream-php": "2.1.0"
   }
 }
