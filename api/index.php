@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require 'vendor/autoload.php';
 
 $options = new ZipStream\Option\Archive();
 $options->setSendHttpHeaders(true);
