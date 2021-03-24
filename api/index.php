@@ -5,7 +5,6 @@ $options->setSendHttpHeaders(true);
 
 //$url = $_GET['url'];
 
-
 /*if(!empty($idNormal)) {
     //$id = $idNormal;
     $urlBase = 'https://api.mercadolibre.com/items/MLB'.$idNormal;
@@ -30,66 +29,51 @@ $valorAleatorio = uniqid(rand(), true); // cria um valor aleatório usado para t
 $totalDeImagens = count($arrayImagens['pictures']); //conta o número de imagens no array do produto
 $zip = new ZipStream\ZipStream($valorAleatorio.'.zip', $options); //cria o arquivo zip com o valor aleatório
 
-$urls = array();
+$urls = [];
 /* Repetição for para obter todas as imagens que contém em um anúncio. */
- for($numeroImagem = 0; $numeroImagem < $totalDeImagens; $numeroImagem++) {
+ for ($numeroImagem = 0; $numeroImagem < $totalDeImagens; $numeroImagem++) {
      //$urls = array($arrayImagens['pictures'][$numeroImagem]['url']);
-     
+
      //array_push($urls,str_replace($str_replace,'-B.',$arrayImagens['pictures'][$numeroImagem]['url']));
-     array_push($urls,preg_replace($str_replace, '-B.', $arrayImagens['pictures'][$numeroImagem]['url']));
-     
-     
-     
-     
+     array_push($urls, preg_replace($str_replace, '-B.', $arrayImagens['pictures'][$numeroImagem]['url']));
 
-//print_r($urls);
-
-};
+     //print_r($urls);
+ }
 // executa o arquivo zip
-//$zip->finish();  
+//$zip->finish();
 
 // add a lot of http urls
 
+foreach ($urls as $url) {
+    // Create Temp File
+    $fp = tmpfile();
 
+    // Download File
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_FILE, $fp);
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_exec($ch);
 
-foreach($urls as $url) {
-  // Create Temp File
-  $fp = tmpfile();
+    // Force to write all data
+    fflush($fp);
 
-  // Download File
-  $ch = curl_init();
-  curl_setopt($ch, CURLOPT_FILE, $fp);
-  curl_setopt($ch, CURLOPT_URL, $url);
-  curl_exec($ch);
+    // Rewind to the beginning, otherwise the stream is at the end from the start
+    rewind($fp);
 
-  // Force to write all data
-  fflush($fp);
+    // Find out a file name from url
+    // In this case URL http://img31.mtime.cn/pi/2014/10/22/092931.12614666_1000X1000.jpg will yield
+    // /pi/2014/10/22/092931.12614666_1000X1000.jpg as file path
+    $filename = parse_url($url, PHP_URL_PATH);
 
-  // Rewind to the beginning, otherwise the stream is at the end from the start
-  rewind($fp);
+    // Add File
+    $zip->addFileFromStream($filename, $fp);
 
-  // Find out a file name from url
-  // In this case URL http://img31.mtime.cn/pi/2014/10/22/092931.12614666_1000X1000.jpg will yield
-  // /pi/2014/10/22/092931.12614666_1000X1000.jpg as file path
-  $filename = parse_url($url, PHP_URL_PATH);
-
-  // Add File
-  $zip->addFileFromStream($filename, $fp);
-
-  // Close the Temp File
-  fclose($fp);
+    // Close the Temp File
+    fclose($fp);
 }
 
 // Finish ZIP
 $zip->finish();
-
-
-
-
-
-
-
-
 
 ?>
 
