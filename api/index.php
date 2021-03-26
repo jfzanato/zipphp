@@ -1,80 +1,84 @@
 <?php
+header('Content-Type: application/json');
 
-$options = new ZipStream\Option\Archive();
-$options->setSendHttpHeaders(true);
-
-//$url = $_GET['url'];
-
-/*if(!empty($idNormal)) {
-    //$id = $idNormal;
-    $urlBase = 'https://api.mercadolibre.com/items/MLB'.$idNormal;
-    $str_replace = "'\-O\.'";
-}
-elseif (!empty($idCatalogo)) {
-   //$id = $idCatalogo;
-   $urlBase = 'https://api.mercadolibre.com/products/MLB'.$idCatalogo;
-   $str_replace = "'\-F\.'";
-}
-else {
-    exit("O endereço não pode ser vazio");
- }*/
-
-$urlBase = 'https://produto.mercadolivre.com.br/MLB-1765165751-adaptador-dvd-para-hd-ou-ssd-notebook-drive-caddy-95mm-_JM';
-$str_replace = "'\-O\.'";
-
-$acessarUrlBase = file_get_contents($urlBase); //acessa o link no ML
-$arrayImagens = json_decode($acessarUrlBase, true);
-$valorAleatorio = uniqid(rand(), true); // cria um valor aleatório usado para todos os itens
-//mkdir('items/'.$valorAleatorio); // cria uma pasta com o valor aleatório
-$totalDeImagens = count($arrayImagens['pictures']); //conta o número de imagens no array do produto
-$zip = new ZipStream\ZipStream($valorAleatorio.'.zip', $options); //cria o arquivo zip com o valor aleatório
-
-$urls = [];
-/* Repetição for para obter todas as imagens que contém em um anúncio. */
- for ($numeroImagem = 0; $numeroImagem < $totalDeImagens; $numeroImagem++) {
-     //$urls = array($arrayImagens['pictures'][$numeroImagem]['url']);
-
-     //array_push($urls,str_replace($str_replace,'-B.',$arrayImagens['pictures'][$numeroImagem]['url']));
-     array_push($urls, preg_replace($str_replace, '-B.', $arrayImagens['pictures'][$numeroImagem]['url']));
-
-     //print_r($urls);
- }
-// executa o arquivo zip
-//$zip->finish();
-
-// add a lot of http urls
-
-foreach ($urls as $url) {
-    // Create Temp File
-    $fp = tmpfile();
-
-    // Download File
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_FILE, $fp);
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_exec($ch);
-
-    // Force to write all data
-    fflush($fp);
-
-    // Rewind to the beginning, otherwise the stream is at the end from the start
-    rewind($fp);
-
-    // Find out a file name from url
-    // In this case URL http://img31.mtime.cn/pi/2014/10/22/092931.12614666_1000X1000.jpg will yield
-    // /pi/2014/10/22/092931.12614666_1000X1000.jpg as file path
-    $filename = parse_url($url, PHP_URL_PATH);
-
-    // Add File
-    $zip->addFileFromStream($filename, $fp);
-
-    // Close the Temp File
-    fclose($fp);
+function get_combinations($arrays) {
+    $arrays = array_filter($arrays);//for empty index case
+	$result = array(array());
+	foreach ($arrays as $property => $property_values) {
+		$tmp = array();
+		foreach ($result as $result_item) {
+			foreach ($property_values as $property_value) {
+				$result_item[$property] = $property_value;
+                $tmp[] = $result_item;
+			}
+		}
+		$result = $tmp;
+	}
+	return $result;
 }
 
-// Finish ZIP
-$zip->finish();
+$variaveldeentrada = $_GET['produto'];
+$c1 = $_GET['c1'];
+$c2 = $_GET['c2'];
+$c3 = $_GET['c3'];
+//$skuList = preg_split("/\\r\\n|\\r|\\n/", $_POST['skuList']);
+
+/*
+$variaveldeentrada recebe um valor e passa automaticamente para o array
+
+https://stackoverflow.com/questions/3997336/explode-php-string-by-new-line
+
+Fazer explode() de um form com GET ou POST e cada item vindo de uma linha:
+$skuList = preg_split('/\r\n|\r|\n/', $_POST['skuList']);
+ou
+$skuList = preg_split("/\\r\\n|\\r|\\n/", $_POST['skuList']);
+
+*/
+
+$combinations = get_combinations(
+	array(
+		'item' => (explode(',', $variaveldeentrada)),
+		//'item' => (preg_split("/\\r\\n|\\r|\\n/", $variaveldeentrada)),
+		'c1' => (explode(',', $c1)),
+		'c2' => (explode(',', $c2)),
+		'c3' => (explode(',', $c3)),	
+	)
+);
+
+// $combinations = get_combinations(
+// 	array(
+// 		'item' => (explode(',', $variaveldeentrada)),
+// 		//'item' => (preg_split("/\\r\\n|\\r|\\n/", $variaveldeentrada)),
+// 		'c1' => array('128 GB', 'Vídeo 4K', 'Tela 5.8','Gorilla Glass 5','Bateria 3000 mAh'),
+// 		'c2' => array('Snapdragon 845','4 GB RAM','Tela Super AMOLED','Câmera 12 Mp'),
+// 		'c3' => array('Promoção','Oferta','Compre já','Aproveite'),		
+// 	)
+// );
+
+//print_r(implode(" ",$combinations[1]).strlen($combinations[1]));
+
+// $x = 2;
+// for ($x = 0; $x = 79; $x++) {
+// 	$meuTitulo[$x] = implode(" ",$combinations[$x]);	
+// 	print_r(json_encode(array('titulo' => $meuTitulo[$x],'tamanho' => (strlen($meuTitulo[$x])-2))));
+//  }
+
+
+//print_r(json_encode(array('titulo' => $combinations[1],'tamanho' => (strlen($combinations[1])-2))));
+//var_dump(json_encode(implode(" ",$combinations)));
+print_r(json_encode($combinations));
+
+
+
+
+// $filtered_array = array_filter($combinations, function ($item) {
+//     return count($item) >= 1;
+// });
+// print_r(json_encode($filtered_array));
+
+
+
+
+
 
 ?>
-
-
